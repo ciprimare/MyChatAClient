@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">MyChatAClient</string>
+    <string name="titleSettingsActivity">Settings</string>
+
+    <string name="lblUsername">Username:</string>
+    <string name="lblPassword">Password:</string>
+    <string name="lblLogin">Login</string>
+    <string name="lblRegister">Register</string>
+    <string name="lblSave">Save</string>
+    <string name="lblCancel">Cancel</string>
+    <string name="lblRepeatPassword">Repeat password</string>
+    <string name="lblHostname">Hostname:</string>
+    <string name="lblPort">Port:</string>
+    <string name="lblConnect">Connect</string>
+
+
+    <string name="prefHostname">Hostname</string>
+    <string name="prefHostnameSummary">Hostname summary</string>
+    <string name="prefPort">Port</string>
+    <string name="prefPortSummary">Port summary</string>
+
+    <string name="action_settings">Settings</string>
+</resources>
