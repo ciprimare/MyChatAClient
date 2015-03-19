@@ -2,25 +2,23 @@ package com.mychataclient;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.mychataclient.utils.Connection;
-import com.mychataclient.utils.MessageHelper;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 
 /**
  * Created by ciprian.mare on 3/17/2015.
  */
-public class HomeActivity extends Activity implements View.OnClickListener {
+public class HomeActivity extends Activity implements View.OnClickListener, Connection.ServerConnectionListener {
 
 
     private EditText txtHostname;
@@ -39,6 +37,7 @@ public class HomeActivity extends Activity implements View.OnClickListener {
         txtHostname.setText(DEFAULT_HOSTNAME);
         txtPort = (EditText) findViewById(R.id.txtPort);
         txtPort.setText(String.valueOf(DEFAULT_PORT));
+        Connection.getInstance().setListener(this);
     }
 
     @Override
@@ -50,11 +49,12 @@ public class HomeActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    private void connect(EditText txtHostname, EditText txtPort) {
+    private void connect(final EditText txtHostname, final EditText txtPort) {
         if (!validate(txtHostname, txtPort)) {
             return;
         }
-        new ConnectionTask().execute(new String[]{txtHostname.getText().toString(), txtPort.getText().toString()});
+        Thread thread = new Thread(new HomeRunnable());
+        thread.start();
     }
 
     private void goNextActivity() {
@@ -75,31 +75,58 @@ public class HomeActivity extends Activity implements View.OnClickListener {
         return isValid;
     }
 
-    private class ConnectionTask extends AsyncTask<String, String, Boolean> {
+
+    @Override
+    public void onMessageReceived(String message) {
+        Log.d("TCP SERVER RESPONSE","SUCKER");
+    }
+
+    class HomeRunnable implements Runnable{
 
         @Override
-        protected Boolean doInBackground(String... args) {
-            String hostname = args[0];
-            int port = Integer.parseInt(args[1]);
-            try {
-                if(Connection.getInstance().hasConnection()){
+        public void run() {
+            if(Connection.getInstance().hasConnection()){
+                try {
                     Connection.getInstance().stop();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                Connection.getInstance().connect(hostname, port);
-                Connection.getInstance().send(1, "client connected from android");
-            } catch (IOException e) {
-                e.printStackTrace();
-                Log.d("MyChatAClient", e.getMessage());
-                return false;
             }
-            return true;
+            Connection.getInstance().connect(txtHostname.getText().toString(), Integer.parseInt(txtPort.getText().toString()));
+            Connection.getInstance().readingMessagesListener();
+            sendHandlerMessage("SUCCESS");
         }
 
-        @Override
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
-            if (result)
-                goNextActivity();
+
+        private void sendHandlerMessage(String msg) {
+
+            if (!msg.equals(null) && !msg.equals("")) {
+                Message msgObj = handler.obtainMessage();
+                Bundle b = new Bundle();
+                b.putString("message", msg);
+                msgObj.setData(b);
+                handler.sendMessage(msgObj);
+            }
         }
+
+        private final Handler handler = new Handler() {
+
+            public void handleMessage(Message msg) {
+
+                String aResponse = msg.getData().getString("message");
+
+                if ((null != aResponse)) {
+
+                    goNextActivity();
+                } else {
+                    // ALERT MESSAGE
+//                        Toast.makeText(
+//                                getBaseContext(),
+//                                "Server Response: " + aResponse,
+//                                Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        };
     }
 }
