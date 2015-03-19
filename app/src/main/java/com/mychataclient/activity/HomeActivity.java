@@ -3,7 +3,6 @@ package com.mychataclient.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -12,8 +11,6 @@ import android.widget.TextView;
 
 import com.mychataclient.R;
 import com.mychataclient.utils.Connection;
-
-import java.io.IOException;
 
 /**
  * Created by ciprian.mare on 3/17/2015.
@@ -80,13 +77,13 @@ public class HomeActivity extends Activity implements View.OnClickListener, Conn
     private boolean validate(String hostname, String port) {
         boolean isValid = true;
         if (hostname.length() == 0) {
-            errorText.setError("Hostname is required");
+            errorText.setText("Hostname is required");
             isValid = false;
         } else if (port.length() == 0) {
-            errorText.setError("Port is required");
+            errorText.setText("Port is required");
             isValid = false;
         } else {
-            errorText.setError("");
+            errorText.setText("");
         }
         return isValid;
     }
@@ -94,6 +91,12 @@ public class HomeActivity extends Activity implements View.OnClickListener, Conn
 
     @Override
     public void onMessageReceived(String message) {
-        Log.d("TCP SERVER RESPONSE", "MESSAGE RECEIVED IN ACTIVITY");
+        Log.d("MyChatAClient", message);
     }
+
+    @Override
+    public void onConnectedStateChanged(boolean connected) {
+        Log.d("MyChatAClient", "ConnectedStateChanged:" + connected);
+    }
+
 }

@@ -10,7 +10,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,7 @@ public class Connection {
     }
 
     public static Connection getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             throw new RuntimeException("Call initInstance before getInstance");
         }
         return instance;
@@ -47,7 +46,7 @@ public class Connection {
     }
 
     private void stopConnection() {
-        if(connectionThread != null) {
+        if (connectionThread != null) {
             connectionThread.stopListening();
         }
     }
@@ -58,7 +57,7 @@ public class Connection {
     }
 
     public void addMessageReceivedListener(MessageReceivedListener listener) {
-        if(!listeners.contains(listener)) {
+        if (!listeners.contains(listener)) {
             listeners.add(listener);
         }
     }
@@ -81,6 +80,18 @@ public class Connection {
         }
 
         connectionThread.send(msg.toString());
+    }
+
+    private void dispatchMessage(String messageToDispatch) {
+        for (MessageReceivedListener listener : listeners) {
+            listener.onMessageReceived(messageToDispatch);
+        }
+    }
+
+    private void dispatchConnectedStateChanged(boolean connected) {
+        for (MessageReceivedListener listener : listeners) {
+            listener.onConnectedStateChanged(connected);
+        }
     }
 
     class ConnectionThread extends Thread {
@@ -112,13 +123,15 @@ public class Connection {
 
         private void initiateConnection() throws IOException {
             socket = new Socket(serverAddress, port);
+            mainThreadHandler.post(new DispatchRunnable(DispatchType.CONNECTION, true));
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
         }
 
         private void receiveMessages() throws IOException {
-            String msg;
             while (listening) {
-                msg = in.readLine();
-                mainThreadHandler.post(new DispatchRunnable(msg));
+                final String msg = in.readLine();
+                mainThreadHandler.post(new DispatchRunnable(DispatchType.MESSAGE, msg));
                 Log.e("MyChatAClient", "Received Message: '" + msg + "'");
             }
         }
@@ -134,6 +147,7 @@ public class Connection {
             if (socket != null) {
                 try {
                     socket.close();
+                    mainThreadHandler.post(new DispatchRunnable(DispatchType.CONNECTION, false));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -141,24 +155,59 @@ public class Connection {
         }
     }
 
+
     public interface MessageReceivedListener {
         public void onMessageReceived(String message);
+
+        public void onConnectedStateChanged(boolean connected);
     }
 
-    private class DispatchRunnable implements Runnable {
-        private String messageToDispatch;
+//    public class MyRunnable<T> implements Runnable {
+//        private final T t;
+//
+//        public MyRunnable(T t) {
+//            this.t = t;
+//        }
+//
+//        public void run() {
+//            if(t instanceof Boolean){
+//                dispatchConnectedStateChanged((Boolean) t);
+//            } else if (t instanceof String) {
+//                dispatchMessage((String) t);
+//            }
+//
+//        }
+//    }
 
-        public DispatchRunnable(String msg) {
-            messageToDispatch = msg;
+    public class DispatchRunnable implements Runnable {
+        private DispatchType dispatchType;
+        private Object toDispatch;
+
+        DispatchRunnable(DispatchType dispatchType, Object toDispatch) {
+            this.dispatchType = dispatchType;
+            this.toDispatch = toDispatch;
         }
 
         @Override
         public void run() {
-            for (MessageReceivedListener listener : listeners) {
-                listener.onMessageReceived(messageToDispatch);
+            switch (dispatchType){
+                case CONNECTION:
+                    dispatchConnectedStateChanged((Boolean) toDispatch);
+                    break;
+                case MESSAGE:
+                    dispatchMessage((String) toDispatch);
+                    break;
             }
+
+
         }
     }
+
+    private enum DispatchType{
+        CONNECTION,
+        MESSAGE;
+    }
+
 }
 
 
