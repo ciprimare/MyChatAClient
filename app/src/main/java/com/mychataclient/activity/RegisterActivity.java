@@ -1,7 +1,9 @@
-package com.mychataclient;
+package com.mychataclient.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
+
+import com.mychataclient.R;
 
 /**
  * Created by ciprian.mare on 3/16/2015.

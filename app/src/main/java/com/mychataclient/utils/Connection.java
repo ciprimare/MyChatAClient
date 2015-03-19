@@ -1,5 +1,6 @@
 package com.mychataclient.utils;
 
+import android.os.Handler;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -11,32 +12,65 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by ciprian.mare on 3/18/2015.
  */
 public class Connection {
+    private static Connection instance;
+    private final Handler mainThreadHandler;
+
+    private List<MessageReceivedListener> listeners = new ArrayList<MessageReceivedListener>();
+    private ConnectionThread connectionThread;
 
 
-    private static Connection instance = new Connection();
-
-    private Socket channel;
-    private PrintWriter out;
-    private BufferedReader in;
-    private ServerConnectionListener listener;
-    private Thread readMessagesThread;
-
-
-    private Connection() {
+    public Connection(Handler mainThreadHandler) {
+        this.mainThreadHandler = mainThreadHandler;
     }
 
+    public static void initInstance(Handler mainThreadHandler) {
+        instance = new Connection(mainThreadHandler);
+    }
 
     public static Connection getInstance() {
+        if(instance == null) {
+            throw new RuntimeException("Call initInstance before getInstance");
+        }
         return instance;
     }
 
+    public void connect(String hostname, int port) {
+        stopConnection();
+        startConnection(hostname, port);
+    }
+
+    private void stopConnection() {
+        if(connectionThread != null) {
+            connectionThread.stopListening();
+        }
+    }
+
+    private void startConnection(String hostname, int port) {
+        connectionThread = new ConnectionThread(hostname, port);
+        connectionThread.start();
+    }
+
+    public void addMessageReceivedListener(MessageReceivedListener listener) {
+        if(!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
+    }
+
+    public void removeMessageReceivedListener(MessageReceivedListener listener) {
+        while (listeners.contains(listener)) {
+            listeners.remove(listener);
+        }
+    }
+
     public void send(final Integer msgType, final Object msgContent) {
-        if (msgType == null || msgContent == null) {
+        if (msgType == null || msgContent == null || connectionThread == null) {
             return;
         }
         JSONObject msg = null;
@@ -45,86 +79,83 @@ public class Connection {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        if (out != null && msg != null) {
-            out.println(msg.toString());
-        }
+
+        connectionThread.send(msg.toString());
     }
 
-    public void connect(final String hostname, final int port) {
-        try {
-            InetAddress serverAddress = InetAddress.getByName(hostname);
-            Log.e("MyChatAClient", "serverAddress:" + serverAddress.toString());
-            Log.e("MyChatAClient", "serverPort:" + port);
-            Log.e("MyChatAClient", "Connecting...");
-            if (channel == null || !channel.isConnected()) {
-                channel = new Socket(serverAddress, port);
-            }
-            try {
-                out = new PrintWriter(channel.getOutputStream(), true);
-                in = new BufferedReader(new InputStreamReader(
-                        channel.getInputStream()));
+    class ConnectionThread extends Thread {
+        private final String serverAddress;
+        private final int port;
 
-
-            } catch (IOException e) {
-                Log.e("MyChatAClient", "Streams error", e);
-            }
-        } catch (IOException e) {
-            Log.e("MyChatAClient", "Connection error", e);
-        }
-    }
-
-    public void readingMessagesListener() {
-        readMessagesThread = new Thread(new ReadListener(in));
-        readMessagesThread.start();
-    }
-
-    public boolean hasConnection() {
-        return channel != null && channel.isConnected();
-    }
-
-    public void stop() throws IOException {
-        out.close();
-        in.close();
-        channel.close();
-    }
-
-    private void dispatchMessage(final String message) {
-        if (listener != null) {
-            listener.onMessageReceived(message);
-        }
-    }
-
-    public void setListener(ServerConnectionListener listener) {
-        this.listener = listener;
-    }
-
-    public interface ServerConnectionListener {
-        public void onMessageReceived(String message);
-    }
-
-
-    class ReadListener implements Runnable {
-
+        private Socket socket;
+        private PrintWriter out;
         private BufferedReader in;
 
-        ReadListener(final BufferedReader in) {
-            this.in = in;
+        private volatile boolean listening = true;
+
+        ConnectionThread(String serverAddress, int port) {
+            this.serverAddress = serverAddress;
+            this.port = port;
         }
 
         @Override
         public void run() {
-            while (true) {
-                String msg = null;
+            try {
+                initiateConnection();
+                receiveMessages();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                stopListening();
+            }
+        }
+
+        private void initiateConnection() throws IOException {
+            socket = new Socket(serverAddress, port);
+        }
+
+        private void receiveMessages() throws IOException {
+            String msg;
+            while (listening) {
+                msg = in.readLine();
+                mainThreadHandler.post(new DispatchRunnable(msg));
+                Log.e("MyChatAClient", "Received Message: '" + msg + "'");
+            }
+        }
+
+        public void send(String message) {
+            if (out != null && message != null) {
+                out.println(message);
+            }
+        }
+
+        public void stopListening() {
+            listening = false;
+            if (socket != null) {
                 try {
-                    msg = in.readLine();
+                    socket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                if (msg != null) {
-                    dispatchMessage(msg);
-                    Log.e("MyChatAClient", "Received Message: '"
-                            + msg + "'");
-                }
+            }
+        }
+    }
+
+    public interface MessageReceivedListener {
+        public void onMessageReceived(String message);
+    }
+
+    private class DispatchRunnable implements Runnable {
+        private String messageToDispatch;
+
+        public DispatchRunnable(String msg) {
+            messageToDispatch = msg;
+        }
+
+        @Override
+        public void run() {
+            for (MessageReceivedListener listener : listeners) {
+                listener.onMessageReceived(messageToDispatch);
             }
         }
     }
