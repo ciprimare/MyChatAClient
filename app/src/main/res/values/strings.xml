@@ -20,4 +20,20 @@
     <string name="prefPortSummary">Port summary</string>
 
     <string name="action_settings">Settings</string>
+    <string name="msg_not_connected">Connection not established</string>
+    <string name="msg_connected">Connection established</string>
+    <string name="msg_username_required">Username is required!</string>
+    <string name="msg_password_required">Password is required!</string>
+    <string name="error_hostname">Hostname is required!</string>
+    <string name="error_port">Port is required!</string>
+    <string name="error_username">Username is required!</string>
+    <string name="error_password">Password is required!</string>
+    <string name="error_password_repeated">Password repeated is required!</string>
+    <string name="error_password_repeated_not_equal">Password repeatead is not equal with password!</string>
+    <string name="msg_user_registred">User registration succesfully done!</string>
+    <string name="error_user_exist">User already exist. Please login.</string>
+    <string name="error_common">Something happend! Please try again later!</string>
+    <string name="error_user_not_exist">User is not registered! Please register!</string>
+    <string name="error_bad_credentials">Bad credentials! Try again!</string>
+    <string name="msg_user_authenticated">User succesfully logged in!</string>
 </resources>

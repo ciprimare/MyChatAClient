@@ -8,6 +8,13 @@
     android:orientation="vertical">
 
     <TextView
+        android:text=""
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/lblDim"
+        android:id="@+id/login_connection_status"/>
+
+        <TextView
         android:text="@string/lblUsername"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -17,7 +24,7 @@
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/txtUsername" />
+        android:id="@+id/login_username" />
 
     <TextView
         android:text="@string/lblPassword"
@@ -30,7 +37,7 @@
         android:layout_height="wrap_content"
         android:inputType="textPassword"
         android:ems="10"
-        android:id="@+id/txtPassword" />
+        android:id="@+id/login_password" />
 
     <LinearLayout
         android:layout_width="fill_parent"
@@ -43,13 +50,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/lblRegister"
-            android:id="@+id/btnRegister" />
+            android:id="@+id/btn_register" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/lblLogin"
-            android:id="@+id/btnLogin" />
+            android:id="@+id/btn_login" />
 
     </LinearLayout>
 

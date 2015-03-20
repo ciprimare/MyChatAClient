@@ -2,16 +2,17 @@ package com.mychataclient.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.mychataclient.R;
 import com.mychataclient.utils.Connection;
+import com.mychataclient.utils.Utils;
 
 /**
  * Created by ciprian.mare on 3/17/2015.
@@ -21,7 +22,6 @@ public class HomeActivity extends Activity implements View.OnClickListener, Conn
 
     private EditText txtHostname;
     private EditText txtPort;
-    private TextView errorText;
 
     private Button btnConnect;
     public static final String DEFAULT_HOSTNAME = "10.0.2.2";
@@ -34,7 +34,6 @@ public class HomeActivity extends Activity implements View.OnClickListener, Conn
 
         txtHostname = (EditText) findViewById(R.id.txt_hostname);
         txtPort = (EditText) findViewById(R.id.txt_port);
-        errorText = (TextView) findViewById(R.id.error_text);
         btnConnect = (Button) findViewById(R.id.btn_connect);
 
         btnConnect.setOnClickListener(this);
@@ -76,29 +75,32 @@ public class HomeActivity extends Activity implements View.OnClickListener, Conn
     }
 
     private boolean validate(String hostname, String port) {
-        boolean isValid = true;
+        boolean bRet = true;
         if (hostname.length() == 0) {
-            errorText.setText("Hostname is required");
-            isValid = false;
-        } else if (port.length() == 0) {
-            errorText.setText("Port is required");
-            isValid = false;
-        } else {
-            errorText.setText("");
+            Utils.showToastNotify(this, getString(R.string.error_hostname));
+            bRet = false;
         }
-        return isValid;
+        if (port.length() == 0) {
+            Utils.showToastNotify(this, getString(R.string.error_port));
+            bRet = false;
+        }
+        return bRet;
     }
 
 
     @Override
     public void onMessageReceived(String message) {
-        Log.d("MyChatAClient", message);
+
     }
 
     @Override
     public void onConnectedStateChanged(boolean connected) {
         Log.d("MyChatAClient", "ConnectedStateChanged:" + connected);
-        if(connected){
+        if (connected) {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("connectionStatus", connected);
+            editor.commit();
             goNextActivity();
         }
     }

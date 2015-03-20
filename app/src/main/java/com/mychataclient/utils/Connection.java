@@ -3,6 +3,8 @@ package com.mychataclient.utils;
 import android.os.Handler;
 import android.util.Log;
 
+import com.mychataclient.entity.Message;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -68,18 +70,33 @@ public class Connection {
         }
     }
 
-    public void send(final Integer msgType, final String username, final String password) {
-        if (msgType == null || username == null || password == null || connectionThread == null) {
+    public void send(final Message message) {
+        if (message == null || connectionThread == null) {
             return;
         }
         JSONObject msg = null;
         try {
-            msg = MessageHelper.createCustomMessage(msgType, username, password);
+            msg = createJsonMessage(message);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         connectionThread.send(msg.toString());
+    }
+
+    /**
+     *
+     * @param message
+     * @return
+     * @throws JSONException
+     */
+    private JSONObject createJsonMessage(Message message) throws JSONException {
+            JSONObject json = new JSONObject();
+            json.put("msgType", message.getMessageType().getCod());
+            json.put("username", message.getUser().getUsername());
+            json.put("password", message.getUser().getPassword());
+            json.put("message", message.getMessage());
+            return json;
     }
 
     private void dispatchMessage(String messageToDispatch) {
@@ -132,7 +149,6 @@ public class Connection {
             while (listening) {
                 final String msg = in.readLine();
                 mainThreadHandler.post(new MainThreadRunnable(msg));
-                Log.e("MyChatAClient", "Received Message: '" + msg + "'");
             }
         }
 
@@ -198,7 +214,7 @@ public class Connection {
     }
 
     /**
-     * enum to handle multiple possibilities to dispatch something on UI main thread
+     * enums to handle multiple possibilities to dispatch something on UI main thread
      */
     private enum HandlerPostEnum{
         CONNECTION_STATUS_CHANGED,
