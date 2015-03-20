@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyChatAClient</string>
+    <string name="app_name">My Chat Room</string>
     <string name="titleSettingsActivity">Settings</string>
 
     <string name="lblUsername">Username:</string>
@@ -37,4 +37,8 @@
     <string name="error_bad_credentials">Bad credentials! Try again!</string>
     <string name="msg_user_authenticated">User succesfully logged in!</string>
     <string name="btn_send">Send</string>
+    <string name="logout">Logout</string>
+    <string name="activity_chat_room">Chat Room -Enjoy</string>
+    <string name="activity_register">Registration</string>
+    <string name="activity_login">Authenticate</string>
 </resources>

@@ -2,6 +2,7 @@ package com.mychataclient.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -20,7 +21,7 @@ import org.json.JSONObject;
 /**
  * Created by ciprian.mare on 3/16/2015.
  */
-public class RegisterActivity extends Activity implements View.OnClickListener, Connection.MessageReceivedListener {
+public class RegisterActivity extends ActionBarActivity implements View.OnClickListener, Connection.MessageReceivedListener {
 
     private EditText editUsername;
     private EditText editPassword;
