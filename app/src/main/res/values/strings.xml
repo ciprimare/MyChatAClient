@@ -36,4 +36,5 @@
     <string name="error_user_not_exist">User is not registered! Please register!</string>
     <string name="error_bad_credentials">Bad credentials! Try again!</string>
     <string name="msg_user_authenticated">User succesfully logged in!</string>
+    <string name="btn_send">Send</string>
 </resources>

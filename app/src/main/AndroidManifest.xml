@@ -25,6 +25,10 @@
         <activity
             android:name=".activity.RegisterActivity"
             android:label="MyChatAClient-Register" />
+
+        <activity
+            android:name=".activity.ChatRoomActivity"
+            android:label="Chat room" />
     </application>
 
 </manifest>

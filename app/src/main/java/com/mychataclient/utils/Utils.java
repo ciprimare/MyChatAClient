@@ -7,6 +7,8 @@ import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.widget.Toast;
 
+import com.mychataclient.entity.User;
+
 import org.json.JSONObject;
 
 /**
@@ -38,6 +40,30 @@ public final class Utils {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
         return sharedPreferences.getBoolean("connectionStatus", false);
     }
+
+    /**
+     *
+     * @param context
+     * @param user
+     */
+    public static void storeCredentials(Context context, User user){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("loggedUsername", user.getUsername());
+        editor.putString("loggedPassword", user.getPassword());
+        editor.commit();
+    }
+
+    /**
+     *
+     * @param context
+     * @return
+     */
+    public static User readCredentials(Context context){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        return new User(sharedPreferences.getString("loggedUsername", ""), sharedPreferences.getString("loggedPassword", ""));
+    }
+
 
 
 

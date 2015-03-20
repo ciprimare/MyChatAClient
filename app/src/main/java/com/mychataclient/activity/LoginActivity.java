@@ -152,7 +152,9 @@ public class LoginActivity extends ActionBarActivity implements View.OnClickList
                 switch (errorCode){
                     case 0:
                         Utils.showToastNotify(this, getString(R.string.msg_user_authenticated));
-                        //TODO: implement chat room
+                        Utils.storeCredentials (this, new User(editUsername.getText().toString(), editPassword.getText().toString()));
+                        Intent intent = new Intent(this, ChatRoomActivity.class);
+                        startActivity(intent);
                         break;
                     case 2:
                         Utils.showToastNotify(this, getString(R.string.error_user_not_exist));
