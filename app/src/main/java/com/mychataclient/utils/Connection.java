@@ -68,13 +68,13 @@ public class Connection {
         }
     }
 
-    public void send(final Integer msgType, final Object msgContent) {
-        if (msgType == null || msgContent == null || connectionThread == null) {
+    public void send(final Integer msgType, final String username, final String password) {
+        if (msgType == null || username == null || password == null || connectionThread == null) {
             return;
         }
         JSONObject msg = null;
         try {
-            msg = MessageHelper.createCustomMessage(msgType, msgContent);
+            msg = MessageHelper.createCustomMessage(msgType, username, password);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -123,7 +123,7 @@ public class Connection {
 
         private void initiateConnection() throws IOException {
             socket = new Socket(serverAddress, port);
-            mainThreadHandler.post(new DispatchRunnable(DispatchType.CONNECTION, true));
+            mainThreadHandler.post(new MainThreadRunnable(true));
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
         }
@@ -131,7 +131,7 @@ public class Connection {
         private void receiveMessages() throws IOException {
             while (listening) {
                 final String msg = in.readLine();
-                mainThreadHandler.post(new DispatchRunnable(DispatchType.MESSAGE, msg));
+                mainThreadHandler.post(new MainThreadRunnable(msg));
                 Log.e("MyChatAClient", "Received Message: '" + msg + "'");
             }
         }
@@ -147,7 +147,7 @@ public class Connection {
             if (socket != null) {
                 try {
                     socket.close();
-                    mainThreadHandler.post(new DispatchRunnable(DispatchType.CONNECTION, false));
+                    mainThreadHandler.post(new MainThreadRunnable(false));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -162,40 +162,34 @@ public class Connection {
         public void onConnectedStateChanged(boolean connected);
     }
 
-//    public class MyRunnable<T> implements Runnable {
-//        private final T t;
-//
-//        public MyRunnable(T t) {
-//            this.t = t;
-//        }
-//
-//        public void run() {
-//            if(t instanceof Boolean){
-//                dispatchConnectedStateChanged((Boolean) t);
-//            } else if (t instanceof String) {
-//                dispatchMessage((String) t);
-//            }
-//
-//        }
-//    }
 
-    public class DispatchRunnable implements Runnable {
-        private DispatchType dispatchType;
-        private Object toDispatch;
+    /**
+     * a inner runnable class used to dispatch on UI main thread
+     */
+    public class MainThreadRunnable implements Runnable {
+        private HandlerPostEnum handlerPostEnum;
+        private String messageToDispatch;
+        private boolean connectionStateChanged;
 
-        DispatchRunnable(DispatchType dispatchType, Object toDispatch) {
-            this.dispatchType = dispatchType;
-            this.toDispatch = toDispatch;
+        MainThreadRunnable(String messageToDispatch){
+            this.messageToDispatch = messageToDispatch;
+            handlerPostEnum = HandlerPostEnum.MESSAGE_RECEIVED;
+
+        }
+
+        MainThreadRunnable(boolean connectionStateChanged){
+            this.connectionStateChanged = connectionStateChanged;
+            handlerPostEnum = HandlerPostEnum.CONNECTION_STATUS_CHANGED;
         }
 
         @Override
         public void run() {
-            switch (dispatchType){
-                case CONNECTION:
-                    dispatchConnectedStateChanged((Boolean) toDispatch);
+            switch (handlerPostEnum){
+                case CONNECTION_STATUS_CHANGED:
+                    dispatchConnectedStateChanged(connectionStateChanged);
                     break;
-                case MESSAGE:
-                    dispatchMessage((String) toDispatch);
+                case MESSAGE_RECEIVED:
+                    dispatchMessage(messageToDispatch);
                     break;
             }
 
@@ -203,9 +197,12 @@ public class Connection {
         }
     }
 
-    private enum DispatchType{
-        CONNECTION,
-        MESSAGE;
+    /**
+     * enum to handle multiple possibilities to dispatch something on UI main thread
+     */
+    private enum HandlerPostEnum{
+        CONNECTION_STATUS_CHANGED,
+        MESSAGE_RECEIVED;
     }
 
 }

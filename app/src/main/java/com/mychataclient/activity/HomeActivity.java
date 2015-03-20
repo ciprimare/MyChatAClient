@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mychataclient.R;
 import com.mychataclient.utils.Connection;
@@ -97,6 +98,9 @@ public class HomeActivity extends Activity implements View.OnClickListener, Conn
     @Override
     public void onConnectedStateChanged(boolean connected) {
         Log.d("MyChatAClient", "ConnectedStateChanged:" + connected);
+        if(connected){
+            goNextActivity();
+        }
     }
 
 }

@@ -12,10 +12,11 @@ public final class MessageHelper {
 
     }
 
-    public static JSONObject createCustomMessage(final Integer msgType, final Object msgContent) throws JSONException {
+    public static JSONObject createCustomMessage(final Integer msgType, final String username, final String password) throws JSONException {
         JSONObject result = new JSONObject();
         result.put("msgType", msgType);
-        result.put("msgContent", msgContent);
+        result.put("username", username);
+        result.put("password", password);
         return result;
     }
 }
