@@ -9,8 +9,6 @@ import android.widget.Toast;
 
 import com.mychataclient.entity.User;
 
-import org.json.JSONObject;
-
 /**
  * Created by ciprian.mare on 3/18/2015.
  */
@@ -42,11 +40,10 @@ public final class Utils {
     }
 
     /**
-     *
      * @param context
      * @param user
      */
-    public static void storeCredentials(Context context, User user){
+    public static void storeCredentials(Context context, User user) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("loggedUsername", user.getUsername());
@@ -55,16 +52,24 @@ public final class Utils {
     }
 
     /**
-     *
      * @param context
      * @return
      */
-    public static User readCredentials(Context context){
+    public static User readCredentials(Context context) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
         return new User(sharedPreferences.getString("loggedUsername", ""), sharedPreferences.getString("loggedPassword", ""));
     }
 
-
+    /**
+     * @param context
+     */
+    public static void clearCredentials(Context context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove("loggedUsername");
+        editor.remove("loggedPassword");
+        editor.commit();
+    }
 
 
 }
