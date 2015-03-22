@@ -1,5 +1,6 @@
 package com.mychataclient.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -78,8 +79,12 @@ public class ChatRoomActivity extends ActionBarActivity implements View.OnClickL
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.logout) {
+            Message message = new Message(MessageType.LOGOUT, loggedUser, "");
+            Connection.getInstance().send(message);
             Utils.clearCredentials(this);
-            finish();
+            Intent intent = new Intent(this, HomeActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
             return true;
         }
 
